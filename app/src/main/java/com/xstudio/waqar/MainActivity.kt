@@ -11,6 +11,9 @@ import com.xstudio.waqar.ui.screens.MainScreen
 import com.xstudio.waqar.ui.theme.WaqarTheme
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var insetsController: WindowInsetsControllerCompat
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().setOnExitAnimationListener { view ->
             view.iconView.animate()
@@ -22,15 +25,26 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
+        insetsController = WindowInsetsControllerCompat(window, window.decorView).apply {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+        hideSystemBars()
 
         setContent {
             WaqarTheme {
                 MainScreen()
             }
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideSystemBars()
+    }
+
+    private fun hideSystemBars() {
+        insetsController.hide(
+            WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars()
+        )
     }
 }
