@@ -5,6 +5,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -50,33 +52,54 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val credentialManager = CredentialManager.create(activity)
-                val googleIdOption = GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(activity.getString(R.string.web_client_id))
-                    .setAutoSelectEnabled(false)
-                    .build()
-                val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build()
-                val result     = credentialManager.getCredential(activity, request)
-                val credential = result.credential
-                if (credential is CustomCredential &&
-                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                ) {
-                    val googleToken        = GoogleIdTokenCredential.createFrom(credential.data)
-                    val firebaseCredential = GoogleAuthProvider.getCredential(googleToken.idToken, null)
-                    val authResult         = auth.signInWithCredential(firebaseCredential).await()
-                    _authState.value = AuthState.SignedIn(authResult.user!!)
-                    _uiState.update { it.copy(isLoading = false) }
-                } else {
-                    _uiState.update { it.copy(isLoading = false, error = "فشل تسجيل الدخول") }
-                }
+                val token = getGoogleIdToken(activity, filterByAuthorized = true)
+                    ?: getGoogleIdToken(activity, filterByAuthorized = false)
+                    ?: run {
+                        _uiState.update { it.copy(isLoading = false, error = "لا يوجد حساب Google على الجهاز") }
+                        return@launch
+                    }
+
+                val firebaseCredential = GoogleAuthProvider.getCredential(token, null)
+                val authResult = auth.signInWithCredential(firebaseCredential).await()
+                _authState.value = AuthState.SignedIn(authResult.user!!)
+                _uiState.update { it.copy(isLoading = false) }
+
             } catch (e: GetCredentialCancellationException) {
                 _uiState.update { it.copy(isLoading = false) }
+            } catch (e: NoCredentialException) {
+                _uiState.update { it.copy(isLoading = false, error = "لا يوجد حساب Google على الجهاز") }
+            } catch (e: GetCredentialException) {
+                _uiState.update { it.copy(isLoading = false, error = "خطأ: ${e.type} - ${e.message}") }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = "فشل تسجيل الدخول، حاول مرة أخرى") }
+                _uiState.update { it.copy(isLoading = false, error = "${e::class.simpleName}: ${e.message}") }
             }
+        }
+    }
+
+    private suspend fun getGoogleIdToken(activity: Activity, filterByAuthorized: Boolean): String? {
+        return try {
+            val credentialManager = CredentialManager.create(activity)
+            val option = GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(filterByAuthorized)
+                .setServerClientId(activity.getString(R.string.web_client_id))
+                .setAutoSelectEnabled(false)
+                .build()
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(option)
+                .build()
+            val result = credentialManager.getCredential(activity, request)
+            val credential = result.credential
+            if (credential is CustomCredential &&
+                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            ) {
+                GoogleIdTokenCredential.createFrom(credential.data).idToken
+            } else null
+        } catch (e: NoCredentialException) {
+            null
+        } catch (e: GetCredentialCancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (filterByAuthorized) null else throw e
         }
     }
 
