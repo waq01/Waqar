@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "55355514951-honuspciramqpde6ogqe1uo1o20g1u0i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.xstudio.waqar",
+            "certificate_hash": "8d37a9c5b5e7f38685c57c2fc9890839f36b0386"
+          }
+        },
+        {
           "client_id": "55355514951-r66f01st9gptqculv3pe307lilu1nf3c.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
