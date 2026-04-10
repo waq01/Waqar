@@ -26,4 +26,9 @@
     <string name="pref_language_sub">Arabic &amp; English</string>
     <string name="about">About</string>
     <string name="about_sub">About Waqar app</string>
+    <string name="auth_tagline">Listen and enjoy Islamic Nasheeds</string>
+    <string name="auth_sign_in_google">Continue with Google</string>
+    <string name="auth_continue_guest">Continue as Guest</string>
+    <string name="auth_or">or</string>
+    <string name="web_client_id">55355514951-jtt20bj49lf344f9d7c9q17ql77omcb0.apps.googleusercontent.com</string>
 </resources>

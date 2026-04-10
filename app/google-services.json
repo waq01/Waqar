@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "55355514951",
+    "project_id": "waqarbase",
+    "storage_bucket": "waqarbase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55355514951:android:6c691cf31a987e2c3f1162",
+        "android_client_info": {
+          "package_name": "com.xstudio.waqar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "55355514951-r66f01st9gptqculv3pe307lilu1nf3c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.xstudio.waqar",
+            "certificate_hash": "25b362f8ae062cbf3966aa6c4ad2215dd1459ca3"
+          }
+        },
+        {
+          "client_id": "55355514951-jtt20bj49lf344f9d7c9q17ql77omcb0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTo8YI7sLXZc_QZutxG-v4KIVraCQ_Ixw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "55355514951-jtt20bj49lf344f9d7c9q17ql77omcb0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

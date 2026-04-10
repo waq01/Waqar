@@ -4,14 +4,26 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.xstudio.waqar.auth.AuthState
+import com.xstudio.waqar.auth.AuthViewModel
+import com.xstudio.waqar.ui.screens.AuthScreen
 import com.xstudio.waqar.ui.screens.MainScreen
 import com.xstudio.waqar.ui.theme.WaqarTheme
 
 class MainActivity : ComponentActivity() {
 
+    private val authViewModel: AuthViewModel by viewModels()
     private lateinit var insetsController: WindowInsetsControllerCompat
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +44,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             WaqarTheme {
-                MainScreen()
+                val authState by authViewModel.authState.collectAsStateWithLifecycle()
+                when (authState) {
+                    AuthState.Checking   -> Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                    )
+                    AuthState.SignedOut  -> AuthScreen(authViewModel)
+                    is AuthState.SignedIn -> MainScreen()
+                }
             }
         }
     }

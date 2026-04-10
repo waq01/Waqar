@@ -26,4 +26,9 @@
     <string name="pref_language_sub">العربية والإنجليزية</string>
     <string name="about">حول التطبيق</string>
     <string name="about_sub">معلومات عن وقار</string>
+    <string name="auth_tagline">استمع وتذوّق الأناشيد الإسلامية</string>
+    <string name="auth_sign_in_google">المتابعة بـ Google</string>
+    <string name="auth_continue_guest">متابعة كضيف</string>
+    <string name="auth_or">أو</string>
+    <string name="web_client_id">55355514951-jtt20bj49lf344f9d7c9q17ql77omcb0.apps.googleusercontent.com</string>
 </resources>
