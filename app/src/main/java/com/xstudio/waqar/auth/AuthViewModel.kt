@@ -1,16 +1,13 @@
 package com.xstudio.waqar.auth
 
 import android.app.Activity
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialCancellationException
-import androidx.credentials.exceptions.GetCredentialException
-import androidx.credentials.exceptions.NoCredentialException
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -44,64 +41,47 @@ class AuthViewModel : ViewModel() {
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
     init {
-        val user = auth.currentUser
-        _authState.value = if (user != null) AuthState.SignedIn(user) else AuthState.SignedOut
+        _authState.value = auth.currentUser
+            ?.let { AuthState.SignedIn(it) }
+            ?: AuthState.SignedOut
     }
 
-    fun signInWithGoogle(activity: Activity) {
+    // ── يُستدعى من AuthScreen قبل لانش الـ intent ────────────────────
+    fun buildSignInIntent(activity: Activity): Intent =
+        buildClient(activity).signInIntent
+
+    // ── يُستدعى بعد رجوع الـ intent ──────────────────────────────────
+    fun handleSignInResult(data: Intent?) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val token = getGoogleIdToken(activity, filterByAuthorized = true)
-                    ?: getGoogleIdToken(activity, filterByAuthorized = false)
-                    ?: run {
-                        _uiState.update { it.copy(isLoading = false, error = "لا يوجد حساب Google على الجهاز") }
-                        return@launch
-                    }
+                val account = GoogleSignIn
+                    .getSignedInAccountFromIntent(data)
+                    .getResult(ApiException::class.java)
 
-                val firebaseCredential = GoogleAuthProvider.getCredential(token, null)
-                val authResult = auth.signInWithCredential(firebaseCredential).await()
-                _authState.value = AuthState.SignedIn(authResult.user!!)
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                val result     = auth.signInWithCredential(credential).await()
+                _authState.value = AuthState.SignedIn(result.user!!)
                 _uiState.update { it.copy(isLoading = false) }
 
-            } catch (e: GetCredentialCancellationException) {
-                _uiState.update { it.copy(isLoading = false) }
-            } catch (e: NoCredentialException) {
-                _uiState.update { it.copy(isLoading = false, error = "لا يوجد حساب Google على الجهاز") }
-            } catch (e: GetCredentialException) {
-                _uiState.update { it.copy(isLoading = false, error = "خطأ: ${e.type} - ${e.message}") }
+            } catch (e: ApiException) {
+                // كود 10 = SHA-1 غلط | كود 12501 = ألغى المستخدم
+                val msg = when (e.statusCode) {
+                    10     -> "تحقق من SHA-1 في Firebase (كود 10)"
+                    12501  -> null   // ألغى → لا رسالة
+                    else   -> "فشل تسجيل الدخول (كود ${e.statusCode})"
+                }
+                _uiState.update { it.copy(isLoading = false, error = msg) }
+
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = "${e::class.simpleName}: ${e.message}") }
+                _uiState.update {
+                    it.copy(isLoading = false, error = "${e::class.simpleName}: ${e.message}")
+                }
             }
         }
     }
 
-    private suspend fun getGoogleIdToken(activity: Activity, filterByAuthorized: Boolean): String? {
-        return try {
-            val credentialManager = CredentialManager.create(activity)
-            val option = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(filterByAuthorized)
-                .setServerClientId(activity.getString(R.string.web_client_id))
-                .setAutoSelectEnabled(false)
-                .build()
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(option)
-                .build()
-            val result = credentialManager.getCredential(activity, request)
-            val credential = result.credential
-            if (credential is CustomCredential &&
-                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-            ) {
-                GoogleIdTokenCredential.createFrom(credential.data).idToken
-            } else null
-        } catch (e: NoCredentialException) {
-            null
-        } catch (e: GetCredentialCancellationException) {
-            throw e
-        } catch (e: Exception) {
-            if (filterByAuthorized) null else throw e
-        }
-    }
+    fun setLoading() = _uiState.update { it.copy(isLoading = true, error = null) }
 
     fun signInAsGuest() {
         viewModelScope.launch {
@@ -116,5 +96,21 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun signOut(activity: Activity) {
+        viewModelScope.launch {
+            buildClient(activity).signOut().await()
+            auth.signOut()
+            _authState.value = AuthState.SignedOut
+        }
+    }
+
     fun clearError() = _uiState.update { it.copy(error = null) }
+
+    private fun buildClient(activity: Activity): GoogleSignInClient {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(activity.getString(R.string.web_client_id))
+            .requestEmail()
+            .build()
+        return GoogleSignIn.getClient(activity, gso)
+    }
 }

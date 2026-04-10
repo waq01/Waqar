@@ -1,3 +1,142 @@
+#!/bin/bash
+set -e
+PKG=app/src/main/java/com/xstudio/waqar
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔧 إصلاح Google Sign-In"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# ── 1. dependency ─────────────────────────────────────────────────────
+if ! grep -q "play-services-auth" app/build.gradle; then
+    sed -i "s|implementation 'com.google.firebase:firebase-auth-ktx'|implementation 'com.google.firebase:firebase-auth-ktx'\n    implementation 'com.google.android.gms:play-services-auth:21.2.0'|" app/build.gradle
+    echo "✅ أضفت play-services-auth"
+else
+    echo "⏭️  play-services-auth موجود"
+fi
+
+# ── 2. AuthViewModel.kt ───────────────────────────────────────────────
+cat > $PKG/auth/AuthViewModel.kt << 'EOF'
+package com.xstudio.waqar.auth
+
+import android.app.Activity
+import android.content.Intent
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
+import com.xstudio.waqar.R
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+
+sealed class AuthState {
+    object Checking  : AuthState()
+    object SignedOut : AuthState()
+    data class SignedIn(val user: FirebaseUser) : AuthState()
+}
+
+data class AuthUiState(
+    val isLoading: Boolean = false,
+    val error: String?     = null
+)
+
+class AuthViewModel : ViewModel() {
+
+    private val auth = FirebaseAuth.getInstance()
+
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Checking)
+    val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
+    private val _uiState = MutableStateFlow(AuthUiState())
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    init {
+        _authState.value = auth.currentUser
+            ?.let { AuthState.SignedIn(it) }
+            ?: AuthState.SignedOut
+    }
+
+    // ── يُستدعى من AuthScreen قبل لانش الـ intent ────────────────────
+    fun buildSignInIntent(activity: Activity): Intent =
+        buildClient(activity).signInIntent
+
+    // ── يُستدعى بعد رجوع الـ intent ──────────────────────────────────
+    fun handleSignInResult(data: Intent?) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val account = GoogleSignIn
+                    .getSignedInAccountFromIntent(data)
+                    .getResult(ApiException::class.java)
+
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                val result     = auth.signInWithCredential(credential).await()
+                _authState.value = AuthState.SignedIn(result.user!!)
+                _uiState.update { it.copy(isLoading = false) }
+
+            } catch (e: ApiException) {
+                // كود 10 = SHA-1 غلط | كود 12501 = ألغى المستخدم
+                val msg = when (e.statusCode) {
+                    10     -> "تحقق من SHA-1 في Firebase (كود 10)"
+                    12501  -> null   // ألغى → لا رسالة
+                    else   -> "فشل تسجيل الدخول (كود ${e.statusCode})"
+                }
+                _uiState.update { it.copy(isLoading = false, error = msg) }
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, error = "${e::class.simpleName}: ${e.message}")
+                }
+            }
+        }
+    }
+
+    fun setLoading() = _uiState.update { it.copy(isLoading = true, error = null) }
+
+    fun signInAsGuest() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val result = auth.signInAnonymously().await()
+                _authState.value = AuthState.SignedIn(result.user!!)
+                _uiState.update { it.copy(isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = "فشل الدخول كضيف") }
+            }
+        }
+    }
+
+    fun signOut(activity: Activity) {
+        viewModelScope.launch {
+            buildClient(activity).signOut().await()
+            auth.signOut()
+            _authState.value = AuthState.SignedOut
+        }
+    }
+
+    fun clearError() = _uiState.update { it.copy(error = null) }
+
+    private fun buildClient(activity: Activity): GoogleSignInClient {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(activity.getString(R.string.web_client_id))
+            .requestEmail()
+            .build()
+        return GoogleSignIn.getClient(activity, gso)
+    }
+}
+EOF
+echo "✅ AuthViewModel.kt"
+
+# ── 3. AuthScreen.kt ──────────────────────────────────────────────────
+cat > $PKG/ui/screens/AuthScreen.kt << 'EOF'
 package com.xstudio.waqar.ui.screens
 
 import android.app.Activity
@@ -192,3 +331,15 @@ fun AuthScreen(viewModel: AuthViewModel) {
         }
     }
 }
+EOF
+echo "✅ AuthScreen.kt"
+
+# ── 4. push ───────────────────────────────────────────────────────────
+git add .
+git commit -m "fix: replace CredentialManager with legacy GoogleSignIn (EMUI compatible)"
+git push
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ تم! انتظر الـ workflow وجرّب"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
