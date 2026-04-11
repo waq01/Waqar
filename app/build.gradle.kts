@@ -23,10 +23,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release.keystore")
+            storePassword = System.getenv("KEYSTORE_PASS") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASS") ?: ""
         }
     }
 
@@ -55,7 +55,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.11" 
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
 
     packaging {
