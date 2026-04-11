@@ -1,40 +1,48 @@
 package com.xstudio.waqar.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
+import androidx.compose.ui.graphics.Color
 
-private val DarkColors  = darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
-private val LightColors = lightColorScheme(primary = Purple40, secondary = PurpleGrey40, tertiary = Pink40)
+private val DarkColors = darkColorScheme(
+    primary          = RoyalBlue,
+    onPrimary        = Color.White,
+    primaryContainer = RoyalBlueDark,
+    secondary        = RoyalBlueLight,
+    background       = DarkBackground,
+    surface          = DarkSurface,
+    surfaceVariant   = DarkSurfaceVar,
+    onBackground     = Color.White,
+    onSurface        = Color.White,
+    onSurfaceVariant = Color(0xFFCCCCCC),
+    outline          = Color(0xFF444444),
+)
+
+private val LightColors = lightColorScheme(
+    primary          = RoyalBlue,
+    onPrimary        = Color.White,
+    primaryContainer = Color(0xFFDDE4FA),
+    secondary        = RoyalBlueDark,
+    background       = LightBackground,
+    surface          = LightSurface,
+    surfaceVariant   = LightSurfaceVar,
+    onBackground     = Color(0xFF111111),
+    onSurface        = Color(0xFF111111),
+    onSurfaceVariant = Color(0xFF555555),
+    outline          = Color(0xFFCCCCCC),
+)
 
 @Composable
 fun WaqarTheme(
-    darkTheme: Boolean    = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val ctx = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
-        }
-        darkTheme -> DarkColors
-        else      -> LightColors
-    }
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-        }
-    }
-    MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    MaterialTheme(
+        colorScheme = if (darkTheme) DarkColors else LightColors,
+        typography  = WaqarTypography,
+        content     = content
+    )
 }

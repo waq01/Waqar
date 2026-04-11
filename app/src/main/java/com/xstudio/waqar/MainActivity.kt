@@ -46,10 +46,12 @@ class MainActivity : ComponentActivity() {
             WaqarTheme {
                 val authState by authViewModel.authState.collectAsStateWithLifecycle()
                 when (authState) {
-                    AuthState.Checking    -> Box(
-                        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                    AuthState.Checking   -> Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
                     )
-                    AuthState.SignedOut   -> AuthScreen(authViewModel)
+                    AuthState.SignedOut  -> AuthScreen(authViewModel)
                     is AuthState.SignedIn -> MainScreen()
                 }
             }

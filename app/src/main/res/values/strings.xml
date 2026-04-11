@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Waqar</string>
+    <string name="home">Home</string>
+    <string name="explore">Explore</string>
+    <string name="profile">Profile</string>
+    <string name="home_subtitle">Discover Islamic Nasheeds</string>
+    <string name="featured_label">Featured</string>
+    <string name="featured_title">Top Nasheeds</string>
+    <string name="play_now">Play Now</string>
+    <string name="recently_played">Recently Played</string>
+    <string name="categories">Categories</string>
+    <string name="cat_quran">Quran</string>
+    <string name="cat_madih">Madih</string>
+    <string name="cat_children">Children</string>
+    <string name="cat_educational">Educational</string>
+    <string name="cat_ramadan">Ramadan</string>
+    <string name="cat_various">Various</string>
+    <string name="search_placeholder">Search nasheeds…</string>
+    <string name="browse_categories">Browse Categories</string>
+    <string name="profile_version">Version %1$s</string>
+    <string name="settings">Settings</string>
+    <string name="pref_appearance">Appearance</string>
+    <string name="pref_appearance_sub">Dark &amp; Light theme</string>
+    <string name="pref_language">Language</string>
+    <string name="pref_language_sub">Arabic &amp; English</string>
+    <string name="about">About</string>
+    <string name="about_sub">About Waqar app</string>
+    <string name="auth_tagline">Listen and enjoy Islamic Nasheeds</string>
+    <string name="auth_sign_in_google">Continue with Google</string>
+    <string name="auth_continue_guest">Continue as Guest</string>
+    <string name="auth_or">or</string>
     <string name="web_client_id">55355514951-jtt20bj49lf344f9d7c9q17ql77omcb0.apps.googleusercontent.com</string>
 </resources>
