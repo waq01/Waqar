@@ -19,18 +19,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Setup Keystore
-        run: |
-          mkdir -p ~/.android
-          cp app/release.keystore ~/.android/debug.keystore
-
       - name: Build APK
         env:
           VERSION_CODE: ${{ github.run_number }}
-        run: bash gradlew assembleDebug
+          KEYSTORE_PATH: ${{ github.workspace }}/app/release.keystore
+          KEYSTORE_PASS: xStudio123
+          KEY_ALIAS: xStudio
+          KEY_PASS: xStudio123
+        run: bash gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Waqar-v${{ github.run_number }}
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/release/app-release.apk
