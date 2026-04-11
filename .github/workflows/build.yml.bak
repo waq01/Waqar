@@ -19,19 +19,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
       - name: Build APK
-        run: ./gradlew assembleRelease
-
-      - name: Prepare APK Name
-        run: |
-          mkdir -p output
-          cp app/build/outputs/apk/release/*.apk output/Waqar-v1.0.apk
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          KEYSTORE_PATH: ${{ github.workspace }}/app/release.keystore
+          KEYSTORE_PASS: xStudio123
+          KEY_ALIAS: xStudio
+          KEY_PASS: xStudio123
+        run: bash gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Waqar-Release
-          path: output/Waqar-v1.0.apk
+          name: Waqar-v${{ github.run_number }}
+          path: app/build/outputs/apk/release/app-release.apk
