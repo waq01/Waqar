@@ -48,6 +48,7 @@ android {
 
     kotlinOptions { jvmTarget = '17' }
 
+    aaptOptions { cruncherEnabled = false }
     buildFeatures { compose true }
 
     composeOptions { kotlinCompilerExtensionVersion '1.5.10' }
