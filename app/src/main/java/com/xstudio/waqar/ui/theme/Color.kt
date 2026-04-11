@@ -2,14 +2,9 @@ package com.xstudio.waqar.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val RoyalBlue        = Color(0xFF4169E1)
-val RoyalBlueLight   = Color(0xFF7B96EC)
-val RoyalBlueDark    = Color(0xFF2A4BBF)
-
-val DarkBackground   = Color(0xFF000000)
-val DarkSurface      = Color(0xFF0D0D0D)
-val DarkSurfaceVar   = Color(0xFF1A1A1A)
-
-val LightBackground  = Color(0xFFFFFFFF)
-val LightSurface     = Color(0xFFF5F5F5)
-val LightSurfaceVar  = Color(0xFFEEEEEE)
+val Purple80     = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80       = Color(0xFFEFB8C8)
+val Purple40     = Color(0xFF6650A4)
+val PurpleGrey40 = Color(0xFF625B71)
+val Pink40       = Color(0xFF7D5260)

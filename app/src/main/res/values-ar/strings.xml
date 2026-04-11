@@ -1,34 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">وقار</string>
-    <string name="home">الرئيسية</string>
-    <string name="explore">اكتشف</string>
-    <string name="profile">حسابي</string>
-    <string name="home_subtitle">اكتشف الأناشيد الإسلامية</string>
-    <string name="featured_label">مميز</string>
-    <string name="featured_title">أفضل الأناشيد</string>
-    <string name="play_now">استمع الآن</string>
-    <string name="recently_played">استمعت مؤخراً</string>
-    <string name="categories">التصنيفات</string>
-    <string name="cat_quran">القرآن الكريم</string>
-    <string name="cat_madih">المديح</string>
-    <string name="cat_children">الأطفال</string>
-    <string name="cat_educational">التربوية</string>
-    <string name="cat_ramadan">رمضانيات</string>
-    <string name="cat_various">متنوعة</string>
-    <string name="search_placeholder">ابحث عن نشيد…</string>
-    <string name="browse_categories">تصفح التصنيفات</string>
-    <string name="profile_version">الإصدار %1$s</string>
-    <string name="settings">الإعدادات</string>
-    <string name="pref_appearance">المظهر</string>
-    <string name="pref_appearance_sub">الوضع الداكن والفاتح</string>
-    <string name="pref_language">اللغة</string>
-    <string name="pref_language_sub">العربية والإنجليزية</string>
-    <string name="about">حول التطبيق</string>
-    <string name="about_sub">معلومات عن وقار</string>
-    <string name="auth_tagline">استمع وتذوّق الأناشيد الإسلامية</string>
-    <string name="auth_sign_in_google">المتابعة بـ Google</string>
-    <string name="auth_continue_guest">متابعة كضيف</string>
-    <string name="auth_or">أو</string>
-    <string name="web_client_id">55355514951-jtt20bj49lf344f9d7c9q17ql77omcb0.apps.googleusercontent.com</string>
 </resources>

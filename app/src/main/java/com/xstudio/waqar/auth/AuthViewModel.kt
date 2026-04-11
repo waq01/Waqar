@@ -46,37 +46,27 @@ class AuthViewModel : ViewModel() {
             ?: AuthState.SignedOut
     }
 
-    // ── يُستدعى من AuthScreen قبل لانش الـ intent ────────────────────
     fun buildSignInIntent(activity: Activity): Intent =
         buildClient(activity).signInIntent
 
-    // ── يُستدعى بعد رجوع الـ intent ──────────────────────────────────
     fun handleSignInResult(data: Intent?) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val account = GoogleSignIn
-                    .getSignedInAccountFromIntent(data)
-                    .getResult(ApiException::class.java)
-
+                val account    = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
                 val result     = auth.signInWithCredential(credential).await()
                 _authState.value = AuthState.SignedIn(result.user!!)
                 _uiState.update { it.copy(isLoading = false) }
-
             } catch (e: ApiException) {
-                // كود 10 = SHA-1 غلط | كود 12501 = ألغى المستخدم
                 val msg = when (e.statusCode) {
-                    10     -> "تحقق من SHA-1 في Firebase (كود 10)"
-                    12501  -> null   // ألغى → لا رسالة
-                    else   -> "فشل تسجيل الدخول (كود ${e.statusCode})"
+                    10    -> "تحقق من SHA-1 في Firebase (كود 10)"
+                    12501 -> null
+                    else  -> "فشل تسجيل الدخول (كود ${e.statusCode})"
                 }
                 _uiState.update { it.copy(isLoading = false, error = msg) }
-
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, error = "${e::class.simpleName}: ${e.message}")
-                }
+                _uiState.update { it.copy(isLoading = false, error = "${e::class.simpleName}: ${e.message}") }
             }
         }
     }
